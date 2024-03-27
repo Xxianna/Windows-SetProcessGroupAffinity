@@ -6,8 +6,8 @@ g++ limitThread.cpp -o limitTread.exe -static
 g++ fireit.cpp -o fireit.exe -static
 ./limitTread.exe cores.txt fireit.exe
 
-====
-####
-#==#
-#==#
+#=#=
+#=#=
+#=#=
+#=#=
 =====

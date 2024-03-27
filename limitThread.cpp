@@ -70,7 +70,11 @@ bool SetThreadAffinityPerGroup(const std::vector<DWORD_PTR>& affinityPerGroup,co
         return 1;
     }
     ++groupCount; // GetNumaHighestNodeNumber 返回的是最高的节点编号，节点计数应该是编号+1
-    cout<< "[\033[32mINFO\033[0m]Core groups: "<<groupCount<<endl;
+    static bool firsttime = true;
+    if(firsttime){
+        std::cout<< "[\033[32mINFO\033[0m]Core groups: "<<groupCount<<endl;
+        firsttime = false;
+    }
 
     for (WORD groupIndex = 0; groupIndex < min(groupCount,affinityPerGroup.size()); ++groupIndex) {
         GROUP_AFFINITY groupAffinity = {};
@@ -109,7 +113,11 @@ std::vector<DWORD_PTR> getProcessAffinityMask(const std::string& filename) {
     int coreCount = 0; // 当前处理核心计数
 
     DWORD totalcore = GetTotalProcessorCount();
-    cout<< "[\033[32mINFO\033[0m]Cores: "<<totalcore<<endl;
+    static bool firsttime = true;
+    if(firsttime){
+        std::cout<< "[\033[32mINFO\033[0m]Cores: "<<totalcore<<endl;
+        firsttime = false;
+    }
     DWORD totalcore_c = 0;
 
     if (!file.is_open()) {
@@ -178,16 +186,35 @@ int main(int argc, char* argv[]) {
     // DWORD_PTR processAffinityMask = processAffinityMaskV[0];
 
     // 设置进程亲和性
-    // if (SetProcessAffinityMask(pi.hProcess, processAffinityMask)) {
-    if (SetThreadAffinityPerGroup(processAffinityMaskV,pi)){
-        std::cerr << "SetProcessAffinityMask failed: " << GetLastError() << std::endl;
-        //杀死被运行的进程
-        TerminateProcess(pi.hProcess, 1);
-        return 1;
-    }else{
-        //显示：[(绿色)OK]运行"...”命令在“...”文件上（英文）
-        std::cout << "[\033[32mOK\033[0m] Running \"" << cmdLine << "\" on \"" << configPath << "\"" << std::endl;
+    bool firsttime = true;
+    Sleep(50);
+    while(1){
+        // if (SetProcessAffinityMask(pi.hProcess, processAffinityMask)) {
+        if (SetThreadAffinityPerGroup(processAffinityMaskV,pi)){
+            std::cerr << "SetProcessAffinityMask failed: " << GetLastError() << std::endl;
+            //杀死被运行的进程
+            TerminateProcess(pi.hProcess, 1);
+            return 1;
+        }else{
+            //显示：[(绿色)OK]运行"...”命令在“...”文件上（英文）
+            if(firsttime){
+                std::cout << "[\033[32mOK\033[0m] Running \"" << cmdLine << "\" on \"" << configPath << "\"" << std::endl;
+                firsttime = false;  
+            }
+        }
+        //如果进程结束，退出循环
+        DWORD exitCode;
+        GetExitCodeProcess(pi.hProcess, &exitCode);
+        if (exitCode != STILL_ACTIVE) {
+            break;
+        }
+        Sleep(100);
     }
+    // 等待进程结束
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
 
     // 等待进程结束
     WaitForSingleObject(pi.hProcess, INFINITE);
