@@ -1,0 +1,13 @@
+This document sets up the core of the program call, 
+sensitive only to the well sign and equal sign, 
+and can be arbitrary line breaks and comments
+
+g++ limitThread.cpp -o limitTread.exe -static
+g++ fireit.cpp -o fireit.exe -static
+./limitTread.exe fireit.exe
+
+====
+####
+#==#
+#==#
+=====
