@@ -4,7 +4,7 @@ and can be arbitrary line breaks and comments
 
 g++ limitThread.cpp -o limitTread.exe -static
 g++ fireit.cpp -o fireit.exe -static
-./limitTread.exe fireit.exe
+./limitTread.exe cores.txt fireit.exe
 
 ====
 ####
